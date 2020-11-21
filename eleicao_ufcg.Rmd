@@ -1,0 +1,405 @@
+---
+title: "Cálculo de Pontos"
+author: "Manoel Santos-Neto"
+date: "21/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(kableExtra)
+```
+
+<style>
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+margin-left: 25px;
+border-radius: 5px;
+font-style: italic;
+}
+</style>
+
+
+<div style="text-align: justify">
+
+# Média Ponderada 
+
+**Definição:** Considere os pesos $p_1$, $p_2$ e $p_3$, então a média ponderada é dada por:
+$$
+\bar{x}_p = \frac{p_1 n_1 + p_2 n_2 + p_3 n_3 }{p_1+p_2+p_3}.
+$$
+
+# Dados da comunidade universitária da UFCG.
+
+A comunidade universitária da UFCG é composta por dois segmentos: **servidores** e **discentes**. A categoria de servidores pode ser dividida em: efetivos, substitutos e terceirizados. Além disso, os servidores efetivos são formados por **professores** e **técnicos**.
+
+## Grupos Aptos a votarem
+
+De acordo com a [RESOLUÇÃO SODS Nº 05, DE 15 DE OUTUBRO DE 2020](https://sei.ufcg.edu.br/sei/publicacoes/controlador_publicacoes.php?acao=publicacao_visualizar&id_documento=1184381&id_orgao_publicacao=0) são aptos a votarem:
+
+I – membros do corpo docente do quadro permanente da UFCG, em efetivo exercício;
+
+II – membros do corpo técnico-administrativo pertencente ao quadro permanente da UFCG, em efetivo exercício;
+
+III– membros do corpo discente dos cursos de graduação, cursos e programas de pós-graduação, residência médica e da Escola Técnica de Saúde de Cajazeiras, regularmente matriculados em disciplinas na UFCG, e em efetivo exercício de suas atividades acadêmicas.
+
+ A cada segmento universitário serão atribuídos os seguintes pesos:
+
+a. Segmento Docente: 70% (setenta por cento);
+
+b. Segmento Técnico-Administrativo: 15% (quinze por cento);
+
+c. Segmento Discente: 15% (quinze por cento).
+
+
+Como o texto acima não deixa claro a aplicação de correções aos valores computados para cada candidato, parece natural pensar na seguinte expressão para o cálculo dos pontos de cada candidato a reitor e vice-reitor da UFCG:
+
+$$
+\bar{x}_{pi} = \frac{0.15 n_d + 0.15 n_{st} + 0.70 n_{sp} }{0.15+0.15+0.70} = 0.15 n_d + 0.15 n_{st} + 0.70 n_{sp}, 
+$$
+em que $\bar{x}_{pi}$ representa a média ponderada para o candidato $i$ e $n_d$ é o número de votos dos discentes,
+$n_{st}$ é o número de votos dos servidores técnicos e $n_{sp}$ é o número de votos dos servidores professores.
+
+De acordo o artigo 31 da [RESOLUÇÃO SODS Nº 05, DE 15 DE OUTUBRO DE 2020](https://sei.ufcg.edu.br/sei/publicacoes/controlador_publicacoes.php?acao=publicacao_visualizar&id_documento=1184381&id_orgao_publicacao=0) o total de pontos de cada candidato deve ser computado considerando a seguinte expressão:
+
+***Art. 31. A apuração dos votos será feita separadamente por segmento, de tal forma que o resultado obedeça ao critério da proporcionalidade entre os três segmentos, definido no parágrafo único do artigo 3º desta Resolução, sendo o resultado total, para cada candidato, representado por:***
+
+$$
+\bar{x}_{pj} = \frac{n_d}{k_d}\cdot 0.15 + \frac{n_{st}}{k_{st}}\cdot 0.15 + \frac{n_{st}}{k_{sp}}\cdot 0.70,  
+$$
+em que $k_d = u_d/u_{sp}$, $k_{sf} = u_{sf}/u_{sp}$ e $k_{sp} = u_{sp}/u_{sp}$ com $u_d$ sendo o número de discentes aptos a votarem, $u_{st}$ sendo o número de servidores técnicos aptos a votarem e $u_{sp}$ é o número de servidores professores aptos a votarem.  
+
+## Pesos de cada segmento
+
+Agora iremos ver o peso de cada segmento em cada uma das expressões apresentadas anteriormente:
+
+```{r, echo=FALSE}
+u_d <- 19638 #universo de discentes
+u_st <- 1329 #universo de servidores tecnicos
+u_sp <- 1501 #universo de servidores professores
+k_d <- u_d/u_sp
+k_st <- u_st/u_sp 
+k_sp <- u_sp/u_sp 
+n_d_r1 <- 2054 #numero de eleitores discentes do candidato a reitor da chapa 1.
+n_d_r2 <- 3084 #numero de eleitores discentes do candidato a reitor da chapa 2.
+n_d_r3 <- 1155 #numero de eleitores discentes do candidato a reitor da chapa 3
+n_st_r1 <- 239 #numero de eleitores serv. tecn do candidato a reitor da chapa 1.
+n_st_r2 <- 319 #numero de eleitores serv. tecn do candidato a reitor da chapa 2.
+n_st_r3 <- 502 #numero de eleitores serv. tecn do candidato a reitor da chapa 3
+n_sp_r1 <- 236 #numero de eleitores serv. prof do candidato a reitor da chapa 1.
+n_sp_r2 <- 378 #numero de eleitores serv. prof do candidato a reitor da chapa 2.
+n_sp_r3 <- 708 #numero de eleitores serv. prof do candidato a reitor da chapa 3
+p_d <- 0.15 #peso para discentes
+p_st <- 0.15 #peso para serv. tecn.
+p_sp <- 0.70 #peso para serv. prof.
+n_d_vr1 <- 1816 #numero de eleitores discentes do candidato a vice-reitor da chapa 1.
+n_d_vr2 <- 3070 #numero de eleitores discentes do candidato a vice-reitor da chapa 2.
+n_d_vr3 <- 1282 #numero de eleitores discentes do candidato a vice-reitor da chapa 3
+n_st_vr1 <- 213 #numero de eleitores serv. tecn do candidato a vice-reitor da chapa 1.
+n_st_vr2 <- 329 #numero de eleitores serv. tecn do candidato a vice-reitor da chapa 2.
+n_st_vr3 <- 517 #numero de eleitores serv. tecn do candidato a vice-reitor da chapa 3
+n_sp_vr1 <- 186 #numero de eleitores serv. prof do candidato a vice-reitor da chapa 1.
+n_sp_vr2 <- 368 #numero de eleitores serv. prof do candidato a vice-reitor da chapa 2.
+n_sp_vr3 <- 751 #numero de eleitores serv. prof do candidato a vice-reitor da chapa 3
+```
+
+
+```{r, echo=FALSE}
+pesos_met1 <- c(p_d,p_st,p_sp) 
+pesos_met2 <- c((p_d/k_d),(p_st/k_st), (p_sp/k_sp))
+ 
+
+out <- data.frame(Segmento=c('Discentes','Técnicos','Professores'),Universo=c(u_d,u_st,u_sp),Coeficientes=c(k_d,k_st,k_sp),Metodo1 = pesos_met1,Metodo2= round(pesos_met2,2) ) 
+out %>% kable(caption = "Coeficientes e Pesos para cada segmento considerando os dois métodos apresentados.",col.names = c("Segmentos","Universo","Coeficientes","Métodos 1","Método 2"),digits = 2) %>% kable_styling()
+
+```
+
+Nota-se que pelo método contido na [RESOLUÇÃO SODS Nº 05, DE 15 DE OUTUBRO DE 2020](https://sei.ufcg.edu.br/sei/publicacoes/controlador_publicacoes.php?acao=publicacao_visualizar&id_documento=1184381&id_orgao_publicacao=0) o peso dos discentes no cálculo final dos pontos obtidos por cada candidato é quase nulo. Existe um pequeno acréscimo para os servidores técnicos devido ao fato do quantitativo deste grupo ser levemente inferior ao de professores. 
+
+# Total de Pontos para Reitor
+
+A seguir são apresentadas as tabelas com os totais obtidos pelos candidatos a reitor considerando apenas os vatos válidos de acordo com a [RESOLUÇÃO SODS Nº 06, DE 23 DE OUTUBRO DE 2020](https://sei.ufcg.edu.br/sei/publicacoes/controlador_publicacoes.php?acao=publicacao_visualizar&id_documento=1201244&id_orgao_publicacao=0) e os métodos 1 e 2.
+
+```{r, echo=FALSE}
+xp_r1 <- n_d_r1*p_d + n_st_r1*p_st + n_sp_r1*p_sp 
+xp_r2 <- n_d_r2*p_d + n_st_r2*p_st + n_sp_r2*p_sp
+xp_r3 <- n_d_r3*p_d + n_st_r3*p_st + n_sp_r3*p_sp
+
+out <- data.frame(Candidato=c('Chapa 1','Chapa 2','Chapa 3'),
+Discentes=rbind(n_d_r1,n_d_r2,n_d_r3),
+Tecnicos=rbind(n_st_r1,n_st_r2,n_st_r3),
+Professores=rbind(n_sp_r1,n_sp_r2,n_sp_r3),
+#Pesos = rbind(p_d,p_st,p_sp) ,
+Total=rbind(xp_r1,xp_r2,xp_r3)
+)
+
+out %>% mutate(Porcentagem=round((Total/sum(Total)*100),2)) %>% kable(caption = 'Total de Pontos para cada candidato considerando o método 1.',col.names = c("Candidato","Discentes","Técnicos","Professores","Pontos","% com relação ao total de pontos"),digits = 2) %>% kable_styling()
+```
+
+
+
+```{r, echo=FALSE}
+xp_r1 <- n_d_r1*(p_d/k_d) + n_st_r1*(p_st/k_st) + n_sp_r1*(p_sp/k_sp) 
+xp_r2 <- n_d_r2*(p_d/k_d) + n_st_r2*(p_st/k_st) + n_sp_r2*(p_sp/k_sp)
+xp_r3 <- n_d_r3*(p_d/k_d) + n_st_r3*(p_st/k_st) + n_sp_r3*(p_sp/k_sp)
+
+out <- data.frame(Candidato=c('Chapa 1','Chapa 2','Chapa 3'),
+Discentes=rbind(n_d_r1,n_d_r2,n_d_r3),
+Tecnicos=rbind(n_st_r1,n_st_r2,n_st_r3),
+Professores=rbind(n_sp_r1,n_sp_r2,n_sp_r3),
+#Pesos = rbind((p_d/k_d),(p_st/k_st), (p_sp/k_sp)) ,
+Total=rbind(xp_r1,xp_r2,xp_r3)
+)
+
+out %>% mutate(Porcentagem=round((Total/sum(Total)*100),2))%>% kable(caption = 'Total de Pontos para cada candidato considerando o método 2.',col.names = c("Candidato","Discentes","Técnicos","Professores","Pontos","% com relação ao total de pontos"),digits = 2) %>% kable_styling() 
+```
+
+# Total de Pontos para Vice-Reitor
+
+A seguir são apresentadas as tabelas com os totais obtidos pelos candidatos a reitor considerando apenas os votos válidos de acordo com a [RESOLUÇÃO SODS Nº 06, DE 23 DE OUTUBRO DE 2020](https://sei.ufcg.edu.br/sei/publicacoes/controlador_publicacoes.php?acao=publicacao_visualizar&id_documento=1201244&id_orgao_publicacao=0) e os métodos 1 e 2.
+
+```{r, echo=FALSE}
+xp_vr1 <- n_d_vr1*p_d + n_st_vr1*p_st + n_sp_vr1*p_sp 
+xp_vr2 <- n_d_vr2*p_d + n_st_vr2*p_st + n_sp_vr2*p_sp
+xp_vr3 <- n_d_vr3*p_d + n_st_vr3*p_st + n_sp_vr3*p_sp
+
+out <- data.frame(Candidato=c('Chapa 1','Chapa 2','Chapa 3'),
+Discentes=rbind(n_d_vr1,n_d_vr2,n_d_vr3),
+Tecnicos=rbind(n_st_vr1,n_st_vr2,n_st_vr3),
+Professores=rbind(n_sp_vr1,n_sp_vr2,n_sp_vr3),
+#Pesos = rbind(p_d,p_st, p_sp) ,
+Total=rbind(xp_vr1,xp_vr2,xp_vr3)
+)
+
+out %>% mutate(Porcentagem=round((Total/sum(Total)*100),2)) %>% kable(caption = 'Total de Pontos para cada candidato considerando o método 1.',col.names = c("Candidato","Discentes","Técnicos","Professores","Pontos","% com relação ao total de pontos"),digits = 2) %>% kable_styling()
+```
+
+```{r, echo=FALSE}
+xp_vr1 <- n_d_vr1*(p_d/k_d) + n_st_vr1*(p_st/k_st) + n_sp_vr1*(p_sp/k_sp) 
+xp_vr2 <- n_d_vr2*(p_d/k_d) + n_st_vr2*(p_st/k_st) + n_sp_vr2*(p_sp/k_sp)
+xp_vr3 <- n_d_vr3*(p_d/k_d) + n_st_vr3*(p_st/k_st) + n_sp_vr3*(p_sp/k_sp)
+
+out <- data.frame(Candidato=c('Chapa 1','Chapa 2','Chapa 3'),
+Discentes=rbind(n_d_vr1,n_d_vr2,n_d_vr3),
+Tecnicos=rbind(n_st_vr1,n_st_vr2,n_st_vr3),
+Professores=rbind(n_sp_vr1,n_sp_vr2,n_sp_vr3),
+#Pesos = rbind((p_d/k_d),(p_st/k_st), (p_sp/k_sp)) ,
+Total=rbind(xp_vr1,xp_vr2,xp_vr3)
+)
+
+out %>% mutate(Porcentagem=round((Total/sum(Total)*100),2))%>% kable(caption = 'Total de Pontos para cada candidato considerando o método 2.',col.names = c("Candidato","Discentes","Técnicos","Professores","Pontos","% com relação ao total de pontos"),digits = 2) %>% kable_styling() 
+```
+
+# Paridade
+
+Parece que uma parcela significativa da comunidade da UFCG acredita que o voto paritário seria o mais democrático. Vejamos como ficariam os resultados se este método fosse considerado.
+
+$$
+\bar{x}_{pj} = \left[n_d\cdot \frac{1}{3} + (n_{st}+n_{sp})\cdot \frac{1}{3}\right].  
+$$
+
+## Reitor
+
+```{r, echo=FALSE}
+p_d <- 1/3
+p_st <- 1/3
+p_sp <- 1/3
+xp_r1 <- (n_sp_r1+n_st_r1)*(p_st) + n_d_r1*p_d 
+xp_r2 <- (n_sp_r2+n_st_r2)*(p_st) + n_d_r2*p_d 
+xp_r3 <- (n_sp_r3+n_st_r3)*(p_st) + n_d_r3*p_d
+
+out <- data.frame(Candidato=c('Chapa 1','Chapa 2','Chapa 3'),
+Discentes=rbind(n_d_r1,n_d_r2,n_d_r3),
+Tecnicos=rbind(n_st_r1,n_st_r2,n_st_r3),
+Professores=rbind(n_sp_r1,n_sp_r2,n_sp_r3),
+#Pesos = rbind((p_d/k_d),(p_st/k_st), (p_sp/k_sp)) ,
+Total=rbind(xp_r1,xp_r2,xp_r3)
+)
+
+out %>% mutate(Porcentagem=round((Total/sum(Total))*100,2))%>% kable(caption = 'Total de Pontos para cada candidato considerando a paridade.',col.names = c("Candidato","Discentes","Técnicos","Professores","Pontos","% com relação ao total de pontos"),digits = 2) %>% kable_styling() 
+```
+
+## Vice-Reitor
+
+```{r, echo=FALSE}
+p_d <- 1/3
+p_st <- 1/3
+p_sp <- 1/3
+xp_vr1 <- (n_sp_vr1+n_st_vr1)*(p_st) + n_d_vr1*p_d 
+xp_vr2 <- (n_sp_vr2+n_st_vr2)*(p_st) + n_d_vr2*p_d 
+xp_vr3 <- (n_sp_vr3+n_st_vr3)*(p_st) + n_d_vr3*p_d
+
+out <- data.frame(Candidato=c('Chapa 1','Chapa 2','Chapa 3'),
+Discentes=rbind(n_d_vr1,n_d_vr2,n_d_vr3),
+Tecnicos=rbind(n_st_vr1,n_st_vr2,n_st_vr3),
+Professores=rbind(n_sp_vr1,n_sp_vr2,n_sp_vr3),
+#Pesos = rbind((p_d/k_d),(p_st/k_st), (p_sp/k_sp)) ,
+Total=rbind(xp_vr1,xp_vr2,xp_vr3)
+)
+
+out %>% mutate(Porcentagem=round((Total/sum(Total))*100,2))%>% kable(caption = 'Total de Pontos para cada candidato considerando a paridade.',col.names = c("Candidato","Discentes","Técnicos","Professores","Pontos","% com relação ao total de pontos"),digits = 2) %>% kable_styling() 
+```
+
+# Paridade considerando a proporção de votantes dentro de cada segmento
+
+Neste método de contagem de pontos teríamos a seguinte expressão:
+
+$$
+\bar{x}_{pj} = \frac{n_d}{n^*_d}\cdot \frac{1}{3} + \frac{n_{st}}{n^*_{st}}\cdot \frac{1}{3} + \frac{n_{sp} }{n^*_{sp}}\cdot \frac{1}{3}   
+$$
+em que $n^*_d$, $n^*_{st}$ e $n^*_{sp}$ representam o total de votos válidos dentro dos segmentos discente, servidores técnicos e servidores professores, respectivamente.
+
+## Reitor
+
+```{r, echo=FALSE}
+p_d <- 1/3
+p_st <- 1/3
+p_sp <- 1/3
+xp_r1 <- (n_d_r1/(n_d_r1+n_d_r2+n_d_r3))*p_d + (n_st_r1/(n_st_r1+n_st_r2+n_st_r3))*p_st +  (n_sp_r1/(n_sp_r1+n_sp_r2+n_sp_r3))*p_sp
+xp_r2 <- (n_d_r2/(n_d_r1+n_d_r2+n_d_r3))*p_d + (n_st_r2/(n_st_r1+n_st_r2+n_st_r3))*p_st +  (n_sp_r2/(n_sp_r1+n_sp_r2+n_sp_r3))*p_sp 
+xp_r3 <- (n_d_r3/(n_d_r1+n_d_r2+n_d_r3))*p_d + (n_st_r3/(n_st_r1+n_st_r2+n_st_r3))*p_st +  (n_sp_r3/(n_sp_r1+n_sp_r2+n_sp_r3))*p_sp
+
+out <- data.frame(Candidato=c('Chapa 1','Chapa 2','Chapa 3'),
+Discentes=rbind(n_d_r1,n_d_r2,n_d_r3),
+Tecnicos=rbind(n_st_r1,n_st_r2,n_st_r3),
+Professores=rbind(n_sp_r1,n_sp_r2,n_sp_r3),
+#Pesos = rbind((p_d/k_d),(p_st/k_st), (p_sp/k_sp)) ,
+Total=round(rbind(xp_r1,xp_r2,xp_r3),4)
+)
+
+out %>% mutate(Porcentagem=round(Total*100,2))%>% kable(caption = 'Total de Pontos para cada candidato considerando a paridade e a proporção de votantes dentro de cada segmento.',col.names = c("Candidato","Discentes","Técnicos","Professores","Pontos","Pontos x 100")) %>% kable_styling() 
+```
+
+## Vice-Reitor
+
+```{r, echo=FALSE}
+p_d <- 1/3
+p_st <- 1/3
+p_sp <- 1/3
+xp_vr1 <- (n_d_vr1/(n_d_vr1+n_d_vr2+n_d_vr3))*p_d + (n_st_vr1/(n_st_vr1+n_st_vr2+n_st_vr3))*p_st +  (n_sp_vr1/(n_sp_vr1+n_sp_vr2+n_sp_vr3))*p_sp
+xp_vr2 <- (n_d_vr2/(n_d_vr1+n_d_vr2+n_d_vr3))*p_d + (n_st_vr2/(n_st_vr1+n_st_vr2+n_st_vr3))*p_st +  (n_sp_vr2/(n_sp_vr1+n_sp_vr2+n_sp_vr3))*p_sp 
+xp_vr3 <- (n_d_vr3/(n_d_vr1+n_d_vr2+n_d_vr3))*p_d + (n_st_vr3/(n_st_vr1+n_st_vr2+n_st_vr3))*p_st +  (n_sp_vr3/(n_sp_vr1+n_sp_vr2+n_sp_vr3))*p_sp
+
+out <- data.frame(Candidato=c('Chapa 1','Chapa 2','Chapa 3'),
+Discentes=rbind(n_d_vr1,n_d_vr2,n_d_vr3),
+Tecnicos=rbind(n_st_vr1,n_st_vr2,n_st_vr3),
+Professores=rbind(n_sp_vr1,n_sp_vr2,n_sp_vr3),
+#Pesos = rbind((p_d/k_d),(p_st/k_st), (p_sp/k_sp)) ,
+Total=round(rbind(xp_vr1,xp_vr2,xp_vr3),4)
+)
+
+out %>% mutate(Porcentagem=round(Total*100,2))%>% kable(caption = 'Total de Pontos para cada candidato considerando a paridade e a proporção de votantes dentro de cada segmento.',col.names = c("Candidato","Discentes","Técnicos","Professores","Pontos","Pontos x 100")) %>% kable_styling() 
+```
+
+
+# Sem paridade mas considerando a proporção de votantes dentro de cada segmento
+
+Na impossibilidade de paridade poderia ser utilizado o método usado pela [UTFPR](https://nuvem.utfpr.edu.br/index.php/s/8lG7G0SrKnBhCIM). Vejamos abaixo a expressão:
+$$
+\bar{x}_{pj} = \frac{n_d}{n^*_d}\cdot 0.15 + \frac{n_{st}}{n^*_{st}}\cdot 0.15 + \frac{n_{sp} }{n^*_{sp}}\cdot 0.70   
+$$
+em que $n^*_d$, $n^*_{st}$ e $n^*_{sp}$ representam o total de votos válidos dentro dos segmentos discente, servidores técnicos e servidores professores, respectivamente.
+
+## Reitor
+
+```{r, echo=FALSE}
+p_d <- 0.15
+p_st <- 0.15
+p_sp <- 0.70
+xp_r1 <- (n_d_r1/(n_d_r1+n_d_r2+n_d_r3))*p_d + (n_st_r1/(n_st_r1+n_st_r2+n_st_r3))*p_st +  (n_sp_r1/(n_sp_r1+n_sp_r2+n_sp_r3))*p_sp
+xp_r2 <- (n_d_r2/(n_d_r1+n_d_r2+n_d_r3))*p_d + (n_st_r2/(n_st_r1+n_st_r2+n_st_r3))*p_st +  (n_sp_r2/(n_sp_r1+n_sp_r2+n_sp_r3))*p_sp 
+xp_r3 <- (n_d_r3/(n_d_r1+n_d_r2+n_d_r3))*p_d + (n_st_r3/(n_st_r1+n_st_r2+n_st_r3))*p_st +  (n_sp_r3/(n_sp_r1+n_sp_r2+n_sp_r3))*p_sp
+
+out <- data.frame(Candidato=c('Chapa 1','Chapa 2','Chapa 3'),
+Discentes=rbind(n_d_r1,n_d_r2,n_d_r3),
+Tecnicos=rbind(n_st_r1,n_st_r2,n_st_r3),
+Professores=rbind(n_sp_r1,n_sp_r2,n_sp_r3),
+#Pesos = rbind((p_d/k_d),(p_st/k_st), (p_sp/k_sp)) ,
+Total=round(rbind(xp_r1,xp_r2,xp_r3),4)
+)
+
+out %>% mutate(Porcentagem=round(Total*100,2))%>% kable(caption = 'Total de Pontos para cada candidato considerando a proporção de votantes dentro de cada segmento.',col.names = c("Candidato","Discentes","Técnicos","Professores","Pontos","Pontos x 100")) %>% kable_styling() 
+```
+
+# Vice-Reitor
+
+```{r, echo=FALSE}
+p_d <- 0.15
+p_st <- 0.15
+p_sp <- 0.70
+xp_vr1 <- (n_d_vr1/(n_d_vr1+n_d_vr2+n_d_vr3))*p_d + (n_st_vr1/(n_st_vr1+n_st_vr2+n_st_vr3))*p_st +  (n_sp_vr1/(n_sp_vr1+n_sp_vr2+n_sp_vr3))*p_sp
+xp_vr2 <- (n_d_vr2/(n_d_vr1+n_d_vr2+n_d_vr3))*p_d + (n_st_vr2/(n_st_vr1+n_st_vr2+n_st_vr3))*p_st +  (n_sp_vr2/(n_sp_vr1+n_sp_vr2+n_sp_vr3))*p_sp 
+xp_vr3 <- (n_d_vr3/(n_d_vr1+n_d_vr2+n_d_vr3))*p_d + (n_st_vr3/(n_st_vr1+n_st_vr2+n_st_vr3))*p_st +  (n_sp_vr3/(n_sp_vr1+n_sp_vr2+n_sp_vr3))*p_sp
+
+out <- data.frame(Candidato=c('Chapa 1','Chapa 2','Chapa 3'),
+Discentes=rbind(n_d_vr1,n_d_vr2,n_d_vr3),
+Tecnicos=rbind(n_st_vr1,n_st_vr2,n_st_vr3),
+Professores=rbind(n_sp_vr1,n_sp_vr2,n_sp_vr3),
+#Pesos = rbind((p_d/k_d),(p_st/k_st), (p_sp/k_sp)) ,
+Total=round(rbind(xp_vr1,xp_vr2,xp_vr3),4)
+)
+
+out %>% mutate(Porcentagem=round(Total*100,2))%>% kable(caption = 'Total de Pontos para cada candidato considerando a proporção de votantes dentro de cada segmento.',col.names = c("Candidato","Discentes","Técnicos","Professores","Pontos","Pontos x 100")) %>% kable_styling() 
+```
+
+<p class="comment">
+**ATENÇÃO:** Este material tem o caráter exclusivamente científico e com o objetivo de gerar uma discussão saúdavel em torno do tema aqui abordado. Comunicação de erros e sugestões podem ser enviadas para manoelferreira@uaest.ufcg.edu.br. Os códigos usados para a produção deste documento está disponível em
+<https://github.com/santosneto/pontosufcg>
+</p>
+
+<!-- <https://www.ifsp.edu.br/images/reitoria/Eleicoes2020/Resultado_1_turno_eleies_IFSP_2020.pdf> -->
+
+<!-- $$ -->
+<!-- \bar{x}_{pj} = \left[\left(\frac{n_d}{u_d}\right)\cdot \frac{1}{3} + \left(\frac{n_{st}}{u_{st}}\right)\cdot \frac{1}{3} + \left(\frac{n_{st}}{u_{sp}}\right)\cdot \frac{1}{3}\right] \times 100.   -->
+<!-- $$ -->
+
+<!-- ```{r} -->
+<!-- p_d <- 1/3 -->
+<!-- p_st <- 1/3 -->
+<!-- p_sp <- 1/3 -->
+<!-- xp_r1 <- (n_d_r1/u_d)*p_d + (n_st_r1/u_st)*p_st + (n_sp_r1/u_sp)*p_sp  -->
+<!-- xp_r2 <- (n_d_r2/u_d)*p_d + (n_st_r2/u_st)*p_st + (n_sp_r2/u_sp)*p_sp  -->
+<!-- xp_r3 <- (n_d_r3/u_d)*p_d + (n_st_r3/u_st)*p_st + (n_sp_r3/u_sp)*p_sp  -->
+
+<!-- out <- data.frame( -->
+<!-- Discentes=rbind(n_d_r1,n_d_r2,n_d_r3), -->
+<!-- Tecnicos=rbind(n_st_r1,n_st_r2,n_st_r3), -->
+<!-- Professores=rbind(n_sp_r1,n_sp_r2,n_sp_r3), -->
+<!-- #Pesos = rbind((p_d/k_d),(p_st/k_st), (p_sp/k_sp)) , -->
+<!-- Total=rbind(xp_r1,xp_r2,xp_r3) -->
+<!-- ) -->
+
+<!-- out %>% mutate(Porcentagem=round((Total*100),2))%>% kable() %>% kable_styling()  -->
+<!-- ``` -->
+
+<!-- $$ -->
+<!-- \bar{x}_{pj} = \left[\left(\frac{n_d}{u_d}\right)\cdot \frac{1}{3} + \left(\frac{n_{st}+n_{sp}}{u_{st}+u_{sp}}\right)\cdot \frac{2}{3}\right]\times 100.   -->
+<!-- $$ -->
+
+
+<!-- ```{r} -->
+<!-- p_d <- 1/3 -->
+<!-- p_st <- 1/3 -->
+<!-- p_sp <- 1/3 -->
+<!-- xp_r1 <- ((n_sp_r1+n_st_r1)/(u_sp+u_st))*(p_st+p_sp) + (n_d_r1/u_d)*p_d  -->
+<!-- xp_r2 <- ((n_sp_r2+n_st_r2)/(u_sp+u_st))*(p_st+p_sp) + (n_d_r2/u_d)*p_d  -->
+<!-- xp_r3 <- ((n_sp_r3+n_st_r3)/(u_sp+u_st))*(p_st+p_sp) + (n_d_r3/u_d)*p_d -->
+
+<!-- out <- data.frame( -->
+<!-- Discentes=rbind(n_d_r1,n_d_r2,n_d_r3), -->
+<!-- Tecnicos=rbind(n_st_r1,n_st_r2,n_st_r3), -->
+<!-- Professores=rbind(n_sp_r1,n_sp_r2,n_sp_r3), -->
+<!-- #Pesos = rbind((p_d/k_d),(p_st/k_st), (p_sp/k_sp)) , -->
+<!-- Total=rbind(xp_r1,xp_r2,xp_r3) -->
+<!-- ) -->
+
+<!-- out %>% mutate(Porcentagem=round((Total*100),2))%>% kable() %>% kable_styling()  -->
+<!-- ``` -->
+
+
+
+
+<div/>
