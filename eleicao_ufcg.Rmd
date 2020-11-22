@@ -195,7 +195,7 @@ out %>% mutate(Porcentagem=round((Total/sum(Total)*100),2))%>% kable(caption = '
 
 # Paridade
 
-Parece que uma parcela significativa da comunidade da UFCG acredita que o voto paritário seria o mais democrático. Vejamos como ficariam os resultados se este método fosse considerado.
+Aparentemente uma parcela significativa da comunidade da UFCG acredita que a paridade entre os segmentos seja o processo mais democrático. Vejamos como ficariam os resultados se este método fosse considerado.
 
 $$
 \bar{x}_{pj} = \left[n_d\cdot \frac{1}{3} + (n_{st}+n_{sp})\cdot \frac{1}{3}\right].  
